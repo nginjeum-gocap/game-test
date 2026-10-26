@@ -15,7 +15,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 900 },
+      gravity: { y: 1000 },
       debug: false
     }
   },
@@ -23,15 +23,10 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: 800,
-    height: 450,
-    // Expand to fill available space on mobile
-    expandParent: true
+    height: 450
   },
   input: {
     activePointers: 3
-  },
-  audio: {
-    disableWebAudio: false
   },
   scene: [
     MenuScene,
@@ -43,24 +38,9 @@ const config = {
   ]
 };
 
-let game = null;
+// Boot Phaser immediately — splash is only an HTML overlay on top
+const game = new Phaser.Game(config);
 
-function boot() {
-  if (game) return;
-  game = new Phaser.Game(config);
-}
-
-// Wait for splash tap if splash is still visible, otherwise boot immediately
-const splash = document.getElementById('splash');
-if (splash && !splash.classList.contains('hidden') && splash.style.display !== 'none') {
-  window.addEventListener('splash-done', boot, { once: true });
-  // Safety: boot after 8s even if splash never dismissed
-  setTimeout(boot, 8000);
-} else {
-  boot();
-}
-
-// Prevent page scroll while touching the game
 window.addEventListener('touchmove', (e) => {
   if (e.target.closest && e.target.closest('#game-container')) {
     e.preventDefault();
