@@ -1,0 +1,191 @@
+/* Platformer Adventure – global styles */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0a0a1a;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  position: fixed;
+  inset: 0;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+#game-container {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0a0a1a;
+}
+
+#game-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ----- Splash / TAP TO PLAY ----- */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+  cursor: pointer;
+  transition: opacity 0.4s ease;
+}
+
+#splash.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash .title {
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: clamp(28px, 8vw, 48px);
+  color: #e94560;
+  text-shadow: 0 0 12px rgba(233, 69, 96, 0.5), 2px 2px 0 #fff;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+  animation: titlePulse 2.5s ease-in-out infinite;
+}
+
+#splash .subtitle {
+  font-size: clamp(18px, 5vw, 28px);
+  color: #fff;
+  text-shadow: 1px 1px 0 #e94560;
+  margin-bottom: 32px;
+}
+
+#splash .tap-btn {
+  background: #e94560;
+  color: #fff;
+  border: 3px solid #fff;
+  border-radius: 12px;
+  padding: 16px 36px;
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: clamp(16px, 4.5vw, 22px);
+  letter-spacing: 1px;
+  box-shadow: 0 6px 0 #a03048, 0 10px 24px rgba(0, 0, 0, 0.4);
+  animation: btnFloat 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+#splash .hint {
+  margin-top: 28px;
+  font-size: 13px;
+  color: #9090b0;
+}
+
+/* Stars on splash */
+.splash-stars {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.splash-stars span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #fff;
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+/* ----- Rotate overlay ----- */
+#rotate-msg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0a0a1a;
+  color: #fff;
+  z-index: 10001;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+#rotate-msg.show {
+  display: flex;
+}
+
+#rotate-msg .icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  animation: rotatePhone 2s ease-in-out infinite;
+}
+
+#rotate-msg strong {
+  font-size: 22px;
+  color: #e94560;
+}
+
+#rotate-msg .sub {
+  margin-top: 10px;
+  color: #a0a0c0;
+  font-size: 14px;
+}
+
+/* Animations */
+@keyframes titlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes btnFloat {
+  0%, 100% { transform: translateY(0); box-shadow: 0 6px 0 #a03048, 0 10px 24px rgba(0,0,0,0.4); }
+  50% { transform: translateY(-6px); box-shadow: 0 12px 0 #a03048, 0 16px 28px rgba(0,0,0,0.35); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes rotatePhone {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(90deg); }
+  70% { transform: rotate(90deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #splash .title,
+  #splash .tap-btn,
+  .splash-stars span,
+  #rotate-msg .icon {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Platformer Adventure</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- Splash: TAP TO PLAY / FULLSCREEN -->
+  <div id="splash">
+    <div class="splash-stars" id="splash-stars"></div>
+    <div class="title">PLATFORMER</div>
+    <div class="subtitle">ADVENTURE</div>
+    <div class="tap-btn">TAP TO PLAY</div>
+    <div class="hint">Tap anywhere to enter fullscreen &amp; start</div>
+  </div>
+
+  <!-- Portrait rotate hint -->
+  <div id="rotate-msg">
+    <div class="icon">📱</div>
+    <strong>ROTATE YOUR PHONE</strong>
+    <div class="sub">Putar HP ke mode landscape<br>untuk pengalaman bermain terbaik</div>
+  </div>
+
+  <div id="game-container"></div>
+
+  <script type="module" src="/src/main.js"></script>
+  <script>
+    (function () {
+      // Decorative stars on splash
+      const starsEl = document.getElementById('splash-stars');
+      if (starsEl) {
+        for (let i = 0; i < 50; i++) {
+          const s = document.createElement('span');
+          s.style.left = Math.random() * 100 + '%';
+          s.style.top = Math.random() * 100 + '%';
+          s.style.animationDelay = (Math.random() * 2) + 's';
+          s.style.width = s.style.height = (1 + Math.random() * 2) + 'px';
+          starsEl.appendChild(s);
+        }
+      }
+
+      const splash = document.getElementById('splash');
+      const rotateMsg = document.getElementById('rotate-msg');
+      let started = false;
+
+      function isMobile() {
+        return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+          (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+      }
+
+      function isPortrait() {
+        return window.innerHeight > window.innerWidth;
+      }
+
+      function updateRotateOverlay() {
+        if (isMobile() && isPortrait()) {
+          rotateMsg.classList.add('show');
+        } else {
+          rotateMsg.classList.remove('show');
+        }
+      }
+
+      async function tryFullscreen() {
+        const el = document.documentElement;
+        try {
+          if (el.requestFullscreen) await el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+        } catch (e) {
+          // User denied or not supported — continue normally
+        }
+      }
+
+      function startGame() {
+        if (started) return;
+        started = true;
+        splash.classList.add('hidden');
+        setTimeout(() => { splash.style.display = 'none'; }, 450);
+        updateRotateOverlay();
+        // Notify Phaser that splash is done (optional event)
+        window.dispatchEvent(new Event('splash-done'));
+      }
+
+      splash.addEventListener('click', async () => {
+        await tryFullscreen();
+        startGame();
+      }, { once: true });
+
+      splash.addEventListener('touchend', async (e) => {
+        e.preventDefault();
+        await tryFullscreen();
+        startGame();
+      }, { once: true, passive: false });
+
+      window.addEventListener('resize', updateRotateOverlay);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(updateRotateOverlay, 150);
+      });
+      updateRotateOverlay();
+    })();
+  </script>
+</body>
+</html>
