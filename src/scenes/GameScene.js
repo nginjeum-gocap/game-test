@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { loadData, finalizeSession } from '../utils/Storage.js';
 import { getSkinColor } from '../data/ShopItems.js';
+import {
+  drawPlayerTexture, drawCoinTexture, drawFlagTexture,
+  drawGroundTexture, drawFloatTexture, addHudPanel
+} from '../utils/Art.js';
 
 /**
  * Gameplay scene — fixed physics/spawn so player is never stuck mid-air.
@@ -64,8 +68,9 @@ export default class GameScene extends Phaser.Scene {
     this.player.setDepth(10);
     this.player.setBounce(0);
     this.player.setCollideWorldBounds(true);
+    // Hitbox stays compact — visual sprite is larger (40x50)
     this.player.body.setSize(24, 40);
-    this.player.body.setOffset(4, 6);
+    this.player.body.setOffset(8, 8);
     this.player.body.setMaxVelocity(280, 900);
     this.player.body.setDragX(1200);
     this.player.body.allowGravity = true;
@@ -92,19 +97,22 @@ export default class GameScene extends Phaser.Scene {
 
     this.buildTouchUI();
 
-    // HUD
-    this.scoreText = this.add.text(10, 8, 'Score: 0', {
-      fontFamily: 'Arial Black, Arial, sans-serif', fontSize: '16px',
+    // HUD panels
+    addHudPanel(this, 6, 6, 150, 52, 49);
+    addHudPanel(this, W - 116, 6, 110, 28, 49);
+
+    this.scoreText = this.add.text(14, 10, 'Score: 0', {
+      fontFamily: 'Arial Black, Arial, sans-serif', fontSize: '15px',
       color: '#ffffff', stroke: '#000', strokeThickness: 3
     }).setScrollFactor(0).setDepth(50);
 
-    this.coinText = this.add.text(10, 30, 'Coins: 0', {
-      fontFamily: 'Arial, sans-serif', fontSize: '14px',
-      color: '#f0e68c', stroke: '#000', strokeThickness: 3
+    this.coinText = this.add.text(14, 32, 'Coins: 0', {
+      fontFamily: 'Arial, sans-serif', fontSize: '13px',
+      color: '#ffd700', stroke: '#000', strokeThickness: 3
     }).setScrollFactor(0).setDepth(50);
 
-    this.add.text(W - 10, 8, 'Best: ' + this.saveData.bestScore, {
-      fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#a0a0c0'
+    this.add.text(W - 12, 12, 'Best: ' + this.saveData.bestScore, {
+      fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#c0c0e0'
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(50);
 
     this.events.once('shutdown', this.cleanup, this);
@@ -118,74 +126,29 @@ export default class GameScene extends Phaser.Scene {
     this.touchLeft = this.touchRight = this.touchJump = false;
   }
 
-  // ---- textures (once) ----
+  // ---- textures (once) — visuals only ----
   ensureTextures() {
-    if (!this.textures.exists('player')) {
-      const g = this.make.graphics({ add: false });
-      g.fillStyle(0xffffff);
-      g.fillRect(6, 12, 20, 30);
-      g.fillStyle(0x1a1a2e);
-      g.fillCircle(16, 11, 9);
-      g.fillStyle(0xffffff);
-      g.fillCircle(12, 10, 2.5);
-      g.fillCircle(20, 10, 2.5);
-      g.fillStyle(0x000000);
-      g.fillCircle(12, 10, 1.2);
-      g.fillCircle(20, 10, 1.2);
-      g.generateTexture('player', 32, 48);
-      g.destroy();
-    }
-    if (!this.textures.exists('coin')) {
-      const g = this.make.graphics({ add: false });
-      g.fillStyle(0xffd700);
-      g.fillCircle(10, 10, 10);
-      g.fillStyle(0xfff6b0);
-      g.fillCircle(10, 10, 5);
-      g.generateTexture('coin', 20, 20);
-      g.destroy();
-    }
-    if (!this.textures.exists('flag')) {
-      const g = this.make.graphics({ add: false });
-      g.fillStyle(0xdddddd);
-      g.fillRect(0, 0, 5, 64);
-      g.fillStyle(0xe94560);
-      g.fillTriangle(5, 0, 40, 11, 5, 22);
-      g.generateTexture('flag', 42, 64);
-      g.destroy();
-    }
-    // Ground / platform textures by width
+    drawPlayerTexture(this, 'player');
+    drawCoinTexture(this, 'coin');
+    drawFlagTexture(this, 'flag');
     const widths = [60, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 500];
     widths.forEach((w) => {
-      const gk = 'gnd_' + w;
-      if (!this.textures.exists(gk)) {
-        const g = this.make.graphics({ add: false });
-        g.fillStyle(0x4a6fa5);
-        g.fillRect(0, 0, w, 28);
-        g.fillStyle(0x6b8fc5);
-        g.fillRect(0, 0, w, 5);
-        g.generateTexture(gk, w, 28);
-        g.destroy();
-      }
-      const fk = 'flt_' + w;
-      if (!this.textures.exists(fk)) {
-        const g = this.make.graphics({ add: false });
-        g.fillStyle(0xe07a5f);
-        g.fillRect(0, 0, w, 16);
-        g.fillStyle(0xf2a68a);
-        g.fillRect(0, 0, w, 4);
-        g.generateTexture(fk, w, 16);
-        g.destroy();
-      }
+      drawGroundTexture(this, w, 'gnd_' + w);
+      drawFloatTexture(this, w, 'flt_' + w);
     });
   }
 
   drawBackground() {
     const g = this.add.graphics();
-    g.fillGradientStyle(0x0f0c29, 0x0f0c29, 0x1a1a3a, 0x1a1a3a, 1);
+    g.fillGradientStyle(0x0b0a1f, 0x0b0a1f, 0x1a1540, 0x1a1540, 1);
     g.fillRect(0, 0, this.worldWidth, this.scale.height + 60);
-    for (let i = 0; i < 70; i++) {
-      g.fillStyle(0xffffff, 0.15 + Math.random() * 0.45);
-      g.fillCircle(Math.random() * this.worldWidth, Math.random() * (this.scale.height - 60), 1 + Math.random());
+    g.fillStyle(0x15122e, 0.7);
+    for (let mx = 0; mx < this.worldWidth; mx += 280) {
+      g.fillTriangle(mx, 360, mx + 140, 200 + (mx % 90), mx + 280, 360);
+    }
+    for (let i = 0; i < 90; i++) {
+      g.fillStyle(0xffffff, 0.15 + Math.random() * 0.5);
+      g.fillCircle(Math.random() * this.worldWidth, Math.random() * (this.scale.height - 80), 1 + Math.random() * 1.2);
     }
   }
 
@@ -208,7 +171,7 @@ export default class GameScene extends Phaser.Scene {
   addGround(x, y, w) {
     const bw = this.pickW(w);
     const key = 'gnd_' + bw;
-    const h = 28;
+    const h = 30;
     const p = this.platforms.create(x + bw / 2, y + h / 2, key);
     p.refreshBody();
     return p;
@@ -217,7 +180,7 @@ export default class GameScene extends Phaser.Scene {
   addFloat(x, y, w) {
     const bw = this.pickW(w);
     const key = 'flt_' + bw;
-    const h = 16;
+    const h = 18;
     const p = this.platforms.create(x + bw / 2, y + h / 2, key);
     p.refreshBody();
     return p;

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { loadData } from '../utils/Storage.js';
+import { drawPlayerTexture } from '../utils/Art.js';
 
 export default class MenuScene extends Phaser.Scene {
   constructor() {
@@ -109,25 +110,13 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   createIdleHero(x, y, reduceMotion) {
-    // Simple silhouette using graphics texture
-    if (!this.textures.exists('hero_idle')) {
-      const g = this.make.graphics({ add: false });
-      g.fillStyle(0x4ecca3, 1);
-      g.fillRect(4, 10, 20, 28);
-      g.fillStyle(0x2b2e4a, 1);
-      g.fillCircle(14, 10, 8);
-      g.fillStyle(0xffffff, 1);
-      g.fillCircle(11, 9, 2);
-      g.fillCircle(17, 9, 2);
-      g.generateTexture('hero_idle', 28, 42);
-      g.destroy();
-    }
-    const hero = this.add.image(x, y, 'hero_idle').setScale(1.3);
+    drawPlayerTexture(this, 'player');
+    const hero = this.add.image(x, y, 'player').setScale(1.6);
     if (!reduceMotion) {
       this.tweens.add({
         targets: hero,
-        y: y - 10,
-        duration: 700,
+        y: y - 12,
+        duration: 750,
         yoyo: true,
         repeat: -1,
         ease: 'Sine.easeInOut'
