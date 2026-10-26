@@ -180,9 +180,4 @@ export default class MenuScene extends Phaser.Scene {
     });
     return { bg, txt };
   }
-<<<<<<< HEAD
 }
-=======
-      }
-  
->>>>>>> 0def86fbacae6505c1ad324ac0f0dc35d17b7638

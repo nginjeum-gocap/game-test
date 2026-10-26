@@ -1,184 +1,103 @@
-<<<<<<< HEAD
-# Platformer Adventure — Stage 2 (Fixed)
+# Platformer Adventure — Stage 2
 
-Phaser 3 + Vite. Optimized for mobile landscape.
+Original 2D browser platformer (Phaser 3 + Vite).  
+Optimized for **mobile landscape** (Android / iOS browsers).
 
-## Fixes in this build
-- Fixed game freeze / stuck when pressing PLAY (texture spam, missing error handling, event leaks)
-- Splash "TAP TO PLAY" → optional fullscreen → landscape check
-- CSS separated into `src/style.css`
-- Canvas fills viewport better
-- Animated home menu (stars, floating platforms, idle hero)
-- Single-fire menu buttons (no double-start)
+## Features (Stage 2)
 
-## Run
-```bash
-npm install
-npm run dev
-```
+- Mobile landscape layout + portrait “rotate phone” message
+- Procedural / random platforms & gaps each new session (fair, beatable)
+- Game Over on fall + Level Complete at flag
+- Score (distance-based) + Best Score (localStorage)
+- Session Coins → awarded once to Total Coins on Game Over
+- Diamond (DM) demo currency
+- Shop (skins & cosmetics with Coin / Diamond prices)
+- Inventory + Equip skin (visible in-game)
+- Main Menu with balances & Best Score
+- Settings (music/SFX toggles placeholder, controls hint, Reset Data with confirm)
+- Top Up page (DEMO only — no real payment; TEST button for +20 💎)
+- Touch controls (left/right + jump) + keyboard
+- Camera follow, gravity, collision
+- All data via localStorage (no backend)
 
-## Build
-=======
-# Platformer Adventure
-
-Original 2D browser platformer built with **Phaser 3** + **Vite**.
-
-**Stage 1** features:
-- Left / right movement
-- Jump + gravity
-- Collision with platforms & ground
-- One complete side-scrolling level
-- Camera follows the player
-- Keyboard + on-screen touch controls
-- Start menu
-- Level indicator + goal flag
-
-No coins, shops, localStorage, accounts, backend, or payments.
-
----
-
-## Requirements
-
-- Node.js 18+ (LTS recommended)
-- npm
+No login, no real payments, no backend, no database.
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
 ```
 
-Open the URL shown in the terminal (usually http://localhost:5173).
+Open the URL (usually http://localhost:5173).  
+Best experienced in **landscape** on a phone.
 
 ## Controls
 
-| Action  | Keyboard             | Touch          |
-|---------|----------------------|----------------|
-| Move    | ← →  or  A / D       | ◀ ▶ buttons    |
-| Jump    | Space / W / ↑        | ▲ button       |
-| Restart | R                    | —              |
+| Action  | Keyboard          | Touch              |
+|---------|-------------------|--------------------|
+| Move    | ← → or A D        | ◀ ▶ (left side)    |
+| Jump    | Space / W / ↑     | ▲ (right side)     |
+| Restart | R (during play)   | Restart button     |
 
 ## Project Structure
 
 ```
 platformer-game/
-├── .gitignore
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── .gitignore
 ├── README.md
-├── public/                 # static assets (empty for now)
+├── public/
 └── src/
-    ├── main.js             # Phaser game config
+    ├── main.js
+    ├── data/
+    │   └── ShopItems.js
+    ├── utils/
+    │   └── Storage.js
     └── scenes/
-        ├── MenuScene.js    # Start screen
-        └── GameScene.js    # Main gameplay
+        ├── MenuScene.js
+        ├── GameScene.js
+        ├── ShopScene.js
+        ├── InventoryScene.js
+        ├── SettingsScene.js
+        └── TopUpScene.js
 ```
 
-## Build for Production
-
->>>>>>> 0def86fbacae6505c1ad324ac0f0dc35d17b7638
-```bash
-npm run build
-```
-
-<<<<<<< HEAD
-`vite.config.js` uses `base: './'` for Vercel / GitHub Pages.
-
-## Controls
-Keyboard: A/D or arrows, Space/W jump, R restart  
-Touch: left/right buttons + jump button
-
-## Notes
-- Top Up is DEMO only (TEST +20 diamonds button)
-- Data stored in localStorage key `platformer_adventure_save_v2`
-=======
-Output is written to the `dist/` folder. Serve it with any static file server:
+## Build & Deploy
 
 ```bash
-npx serve dist
-# or
+npm run build        # → dist/
 npm run preview
 ```
 
-## Deploy to GitHub Pages
+**Vite `base: './'`** is already set for GitHub Pages / Vercel subpath compatibility.
 
-1. Create a new repository on GitHub (e.g. `platformer-adventure`).
-2. Push this project:
+### Vercel
+1. Import the GitHub repo
+2. Framework: Vite
+3. Build: `npm run build`
+4. Output: `dist`
+5. Deploy
 
-```bash
-git init
-git add .
-git commit -m "Initial commit - Platformer Adventure Stage 1"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/platformer-adventure.git
-git push -u origin main
-```
+### GitHub Pages
+Use a workflow that builds and uploads `dist`, or enable Pages on the `gh-pages` branch after build.
 
-3. Enable GitHub Pages:
-   - Go to repository **Settings → Pages**
-   - Source: **GitHub Actions** or **Deploy from a branch**
-   - If using branch: select `gh-pages` (after build) or use a workflow.
+## localStorage Keys
 
-**Recommended: Vite base is already set to `./`** so relative paths work when the site is served from a subfolder or root.
+Single key: `platformer_adventure_save_v2`  
+Stores: bestScore, totalCoins, totalDiamonds, ownedItems, equippedSkin, settings, sessionHistory.
 
-### Simple GitHub Actions workflow (optional)
-
-Create `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - uses: actions/deploy-pages@v4
-```
-
-After the first successful run the game will be available at:
-
-`https://YOUR_USERNAME.github.io/platformer-adventure/`
-
-## Deploy to Vercel
-
-1. Push the repo to GitHub.
-2. Go to [vercel.com](https://vercel.com) → New Project → Import the repository.
-3. Framework Preset: **Vite**
-4. Build Command: `npm run build`
-5. Output Directory: `dist`
-6. Deploy.
-
-The game will get a public URL immediately.
+Data can be lost if the browser clears storage and can be modified by the user. This is intentional for a free offline-capable demo.
 
 ## Notes
 
-- All graphics (player, platforms, background, flag) are generated at runtime with Phaser Graphics — no external image files required.
-- Gravity, jump force, and movement speed can be tuned inside `src/scenes/GameScene.js`.
-- Touch buttons are always visible (useful for testing on desktop too).
-- This is Stage 1 only. Future stages can add coins, enemies, more levels, etc.
+- All art is generated with Phaser Graphics (no external image assets required).
+- Procedural levels use a seed per session so the layout is stable until Restart / new game.
+- Coin reward is applied exactly once when the session ends (Game Over or Level Complete).
+- Top Up is labeled DEMO / TEST ONLY — no real payment flow.
 
 ## License
 
-Free to use, modify, and distribute for personal or commercial projects. Attribution appreciated but not required.
->>>>>>> 0def86fbacae6505c1ad324ac0f0dc35d17b7638
+Free to use and modify. Attribution appreciated but not required.
