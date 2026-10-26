@@ -282,29 +282,77 @@ export default class GameScene extends Phaser.Scene {
   buildTouchUI() {
     const W = this.scale.width;
     const H = this.scale.height;
-    const r = 36;
-    const m = 18;
-    const by = H - m - r;
 
-    const mk = (cx, color, label, flag) => {
-      const c = this.add.circle(cx, by, r, color, 0.5)
-        .setScrollFactor(0).setDepth(80).setInteractive();
-      this.add.text(cx, by, label, {
-        fontSize: '26px', color: '#fff', fontFamily: 'Arial Black'
-      }).setOrigin(0.5).setScrollFactor(0).setDepth(81);
-      c.on('pointerdown', (p) => { this[flag] = true; if (p.event) p.event.stopPropagation(); });
-      c.on('pointerup', () => { this[flag] = false; });
-      c.on('pointerout', () => { this[flag] = false; });
-      c.on('pointerupoutside', () => { this[flag] = false; });
-      return c;
+    // Only topmost interactive object receives the pointer (critical on mobile)
+    this.input.setTopOnly(true);
+
+    // Visual buttons (display only)
+    const by = H - 52;
+    this.add.circle(56, by, 40, 0x2a9d8f, 0.55).setScrollFactor(0).setDepth(200);
+    this.add.circle(140, by, 40, 0x2a9d8f, 0.55).setScrollFactor(0).setDepth(200);
+    this.add.circle(W - 56, by, 42, 0xe94560, 0.55).setScrollFactor(0).setDepth(200);
+    this.add.text(56, by, '<', { fontSize: '28px', color: '#fff', fontFamily: 'Arial Black' })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    this.add.text(140, by, '>', { fontSize: '28px', color: '#fff', fontFamily: 'Arial Black' })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    this.add.text(W - 56, by, '^', { fontSize: '28px', color: '#fff', fontFamily: 'Arial Black' })
+      .setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    // Large invisible hit zones (easier to press on phone)
+    // Left move zone
+    const leftZone = this.add.zone(50, H - 50, 100, 120)
+      .setScrollFactor(0).setDepth(210)
+      .setInteractive();
+    // Right move zone
+    const rightZone = this.add.zone(150, H - 50, 100, 120)
+      .setScrollFactor(0).setDepth(210)
+      .setInteractive();
+    // Jump zone (right side of screen)
+    const jumpZone = this.add.zone(W - 60, H - 50, 130, 130)
+      .setScrollFactor(0).setDepth(210)
+      .setInteractive();
+
+    // Track which pointer id is holding which control
+    this._ptrLeft = null;
+    this._ptrRight = null;
+    this._ptrJump = null;
+
+    const press = (flag, ptrProp, pointer) => {
+      this[flag] = true;
+      this[ptrProp] = pointer.id;
+    };
+    const release = (flag, ptrProp, pointer) => {
+      if (this[ptrProp] === pointer.id || this[ptrProp] === null) {
+        this[flag] = false;
+        this[ptrProp] = null;
+      }
     };
 
-    mk(m + r, 0x2a9d8f, '<', 'touchLeft');
-    mk(m + r * 3.15, 0x2a9d8f, '>', 'touchRight');
-    mk(W - m - r, 0xe94560, '^', 'touchJump');
+    leftZone.on('pointerdown', (p) => press('touchLeft', '_ptrLeft', p));
+    leftZone.on('pointerup', (p) => release('touchLeft', '_ptrLeft', p));
+    leftZone.on('pointerout', (p) => release('touchLeft', '_ptrLeft', p));
+    leftZone.on('pointerupoutside', (p) => release('touchLeft', '_ptrLeft', p));
+
+    rightZone.on('pointerdown', (p) => press('touchRight', '_ptrRight', p));
+    rightZone.on('pointerup', (p) => release('touchRight', '_ptrRight', p));
+    rightZone.on('pointerout', (p) => release('touchRight', '_ptrRight', p));
+    rightZone.on('pointerupoutside', (p) => release('touchRight', '_ptrRight', p));
+
+    jumpZone.on('pointerdown', (p) => press('touchJump', '_ptrJump', p));
+    jumpZone.on('pointerup', (p) => release('touchJump', '_ptrJump', p));
+    jumpZone.on('pointerout', (p) => release('touchJump', '_ptrJump', p));
+    jumpZone.on('pointerupoutside', (p) => release('touchJump', '_ptrJump', p));
+
+    // Global pointerup safety — clear all if finger lifts anywhere
+    this.input.on('pointerup', (p) => {
+      if (this._ptrLeft === p.id) { this.touchLeft = false; this._ptrLeft = null; }
+      if (this._ptrRight === p.id) { this.touchRight = false; this._ptrRight = null; }
+      if (this._ptrJump === p.id) { this.touchJump = false; this._ptrJump = null; }
+    });
 
     this._blurHandler = () => {
       this.touchLeft = this.touchRight = this.touchJump = false;
+      this._ptrLeft = this._ptrRight = this._ptrJump = null;
     };
     this.game.events.on('blur', this._blurHandler);
   }
