@@ -7,15 +7,25 @@ export default class MenuScene extends Phaser.Scene {
     super({ key: 'MenuScene' });
   }
 
+  preload() {
+    if (!this.textures.exists('bg_menu')) this.load.image('bg_menu', 'assets/bg_menu.png');
+    if (!this.textures.exists('player_img')) this.load.image('player_img', 'assets/player.png');
+    if (!this.textures.exists('coin_img')) this.load.image('coin_img', 'assets/coin.png');
+    if (!this.textures.exists('diamond_img')) this.load.image('diamond_img', 'assets/diamond.png');
+  }
+
   create() {
     const { width, height } = this.scale;
     const data = loadData();
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Background gradient
-    const bg = this.add.graphics();
-    bg.fillGradientStyle(0x0f0c29, 0x0f0c29, 0x302b63, 0x24243e, 1);
-    bg.fillRect(0, 0, width, height);
+    if (this.textures.exists('bg_menu')) {
+      this.add.image(width / 2, height / 2, 'bg_menu').setDisplaySize(width, height);
+    } else {
+      const bg = this.add.graphics();
+      bg.fillGradientStyle(0x0f0c29, 0x0f0c29, 0x302b63, 0x24243e, 1);
+      bg.fillRect(0, 0, width, height);
+    }
 
     // Twinkling stars
     this.stars = [];
@@ -110,8 +120,9 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   createIdleHero(x, y, reduceMotion) {
-    drawPlayerTexture(this, 'player');
-    const hero = this.add.image(x, y, 'player').setScale(1.6);
+    const key = this.textures.exists('player_img') ? 'player_img' : 'player';
+    if (!this.textures.exists(key)) drawPlayerTexture(this, 'player');
+    const hero = this.add.image(x, y, this.textures.exists('player_img') ? 'player_img' : 'player').setScale(2.2);
     if (!reduceMotion) {
       this.tweens.add({
         targets: hero,

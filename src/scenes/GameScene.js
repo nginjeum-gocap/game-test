@@ -30,6 +30,20 @@ export default class GameScene extends Phaser.Scene {
     this.groundY = 390;
   }
 
+  preload() {
+    // Real PNG assets from public/assets/
+    if (!this.textures.exists('player_sheet')) {
+      this.load.spritesheet('player_sheet', 'assets/player_sheet.png', {
+        frameWidth: 40, frameHeight: 50
+      });
+    }
+    if (!this.textures.exists('coin_img')) this.load.image('coin_img', 'assets/coin.png');
+    if (!this.textures.exists('flag_img')) this.load.image('flag_img', 'assets/flag.png');
+    if (!this.textures.exists('ground_img')) this.load.image('ground_img', 'assets/ground.png');
+    if (!this.textures.exists('platform_img')) this.load.image('platform_img', 'assets/platform.png');
+    if (!this.textures.exists('bg_game')) this.load.image('bg_game', 'assets/bg_menu.png');
+  }
+
   create() {
     try {
       this._build();
@@ -49,7 +63,9 @@ export default class GameScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, this.worldWidth, H + 400);
     this.physics.world.gravity.y = 1000;
 
+    // Fallback procedural textures if PNG failed to load
     this.ensureTextures();
+    this.setupAnims();
     this.drawBackground();
 
     this.platforms = this.physics.add.staticGroup();
@@ -63,18 +79,20 @@ export default class GameScene extends Phaser.Scene {
     const spawnY = this.groundY - 28;
     const skin = getSkinColor(this.saveData.equippedSkin || 'skin_default');
 
-    this.player = this.physics.add.sprite(spawnX, spawnY, 'player');
-    this.player.setTint(skin);
+    const sheetKey = this.textures.exists('player_sheet') ? 'player_sheet' : 'player';
+    this.player = this.physics.add.sprite(spawnX, spawnY, sheetKey, 0);
+    if (skin !== 0x4ecca3) this.player.setTint(skin);
     this.player.setDepth(10);
     this.player.setBounce(0);
     this.player.setCollideWorldBounds(true);
-    // Hitbox stays compact — visual sprite is larger (40x50)
+    // Hitbox stays compact — visual sprite is 40x50
     this.player.body.setSize(24, 40);
     this.player.body.setOffset(8, 8);
     this.player.body.setMaxVelocity(280, 900);
     this.player.body.setDragX(1200);
     this.player.body.allowGravity = true;
     this.player.body.setGravityY(0);
+    if (this.anims.exists('idle')) this.player.play('idle');
 
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.overlap(this.player, this.coinsGroup, this.onCoin, null, this);
@@ -126,29 +144,47 @@ export default class GameScene extends Phaser.Scene {
     this.touchLeft = this.touchRight = this.touchJump = false;
   }
 
-  // ---- textures (once) — visuals only ----
+  setupAnims() {
+    if (!this.textures.exists('player_sheet')) return;
+    if (!this.anims.exists('idle')) {
+      this.anims.create({ key: 'idle', frames: [{ key: 'player_sheet', frame: 0 }], frameRate: 1 });
+      this.anims.create({
+        key: 'run',
+        frames: this.anims.generateFrameNumbers('player_sheet', { start: 1, end: 2 }),
+        frameRate: 8,
+        repeat: -1
+      });
+      this.anims.create({ key: 'jump', frames: [{ key: 'player_sheet', frame: 3 }], frameRate: 1 });
+      this.anims.create({ key: 'fall', frames: [{ key: 'player_sheet', frame: 4 }], frameRate: 1 });
+    }
+  }
+
+  // Fallback procedural if PNG missing
   ensureTextures() {
-    drawPlayerTexture(this, 'player');
-    drawCoinTexture(this, 'coin');
-    drawFlagTexture(this, 'flag');
+    if (!this.textures.exists('player')) drawPlayerTexture(this, 'player');
+    if (!this.textures.exists('coin') && !this.textures.exists('coin_img')) drawCoinTexture(this, 'coin');
+    if (!this.textures.exists('flag') && !this.textures.exists('flag_img')) drawFlagTexture(this, 'flag');
     const widths = [60, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 500];
     widths.forEach((w) => {
-      drawGroundTexture(this, w, 'gnd_' + w);
-      drawFloatTexture(this, w, 'flt_' + w);
+      if (!this.textures.exists('gnd_' + w)) drawGroundTexture(this, w, 'gnd_' + w);
+      if (!this.textures.exists('flt_' + w)) drawFloatTexture(this, w, 'flt_' + w);
     });
   }
 
   drawBackground() {
-    const g = this.add.graphics();
-    g.fillGradientStyle(0x0b0a1f, 0x0b0a1f, 0x1a1540, 0x1a1540, 1);
-    g.fillRect(0, 0, this.worldWidth, this.scale.height + 60);
-    g.fillStyle(0x15122e, 0.7);
-    for (let mx = 0; mx < this.worldWidth; mx += 280) {
-      g.fillTriangle(mx, 360, mx + 140, 200 + (mx % 90), mx + 280, 360);
-    }
-    for (let i = 0; i < 90; i++) {
-      g.fillStyle(0xffffff, 0.15 + Math.random() * 0.5);
-      g.fillCircle(Math.random() * this.worldWidth, Math.random() * (this.scale.height - 80), 1 + Math.random() * 1.2);
+    if (this.textures.exists('bg_game')) {
+      // Tile background across world
+      for (let x = 0; x < this.worldWidth; x += 800) {
+        this.add.image(x, 0, 'bg_game').setOrigin(0, 0).setDisplaySize(800, this.scale.height).setDepth(-10);
+      }
+    } else {
+      const g = this.add.graphics();
+      g.fillGradientStyle(0x0b0a1f, 0x0b0a1f, 0x1a1540, 0x1a1540, 1);
+      g.fillRect(0, 0, this.worldWidth, this.scale.height + 60);
+      g.fillStyle(0x15122e, 0.7);
+      for (let mx = 0; mx < this.worldWidth; mx += 280) {
+        g.fillTriangle(mx, 360, mx + 140, 200 + (mx % 90), mx + 280, 360);
+      }
     }
   }
 
@@ -170,24 +206,27 @@ export default class GameScene extends Phaser.Scene {
 
   addGround(x, y, w) {
     const bw = this.pickW(w);
-    const key = 'gnd_' + bw;
     const h = 30;
+    const key = this.textures.exists('ground_img') ? 'ground_img' : ('gnd_' + bw);
     const p = this.platforms.create(x + bw / 2, y + h / 2, key);
+    p.setDisplaySize(bw, h);
     p.refreshBody();
     return p;
   }
 
   addFloat(x, y, w) {
     const bw = this.pickW(w);
-    const key = 'flt_' + bw;
     const h = 18;
+    const key = this.textures.exists('platform_img') ? 'platform_img' : ('flt_' + bw);
     const p = this.platforms.create(x + bw / 2, y + h / 2, key);
+    p.setDisplaySize(bw, h);
     p.refreshBody();
     return p;
   }
 
   addCoinAt(x, y) {
-    const c = this.coinsGroup.create(x, y, 'coin');
+    const key = this.textures.exists('coin_img') ? 'coin_img' : 'coin';
+    const c = this.coinsGroup.create(x, y, key);
     c.body.allowGravity = false;
     c.setData('got', false);
     this.tweens.add({
@@ -228,7 +267,8 @@ export default class GameScene extends Phaser.Scene {
 
     // Finish pad
     this.addGround(this.worldWidth - 400, gy, 400);
-    this.add.image(this.worldWidth - 160, gy, 'flag').setOrigin(0.15, 1);
+    const flagKey = this.textures.exists('flag_img') ? 'flag_img' : 'flag';
+    this.add.image(this.worldWidth - 160, gy, flagKey).setOrigin(0.15, 1);
     // win zone overlap is registered later in setupWinZone() after player exists
     this._winZoneX = this.worldWidth - 150;
     this._winZoneY = gy - 30;
@@ -415,6 +455,18 @@ export default class GameScene extends Phaser.Scene {
       this.jumpBuffered = true;
     }
     if (!jump) this.jumpBuffered = false;
+
+    // Character animation (visual only)
+    if (this.anims.exists('run')) {
+      if (!onFloor) {
+        const key = body.velocity.y < 0 ? 'jump' : 'fall';
+        if (this.player.anims.currentAnim?.key !== key) this.player.play(key, true);
+      } else if (left || right) {
+        if (this.player.anims.currentAnim?.key !== 'run') this.player.play('run', true);
+      } else {
+        if (this.player.anims.currentAnim?.key !== 'idle') this.player.play('idle', true);
+      }
+    }
 
     // Score by distance
     if (this.player.x > this.maxX) {
